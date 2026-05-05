@@ -3,7 +3,6 @@
 <head>
   <meta charset="utf-8">
   <title>Visor 360°</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@800&display=swap" rel="stylesheet">
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
   <style>
     body { margin: 0; padding: 0; }
@@ -26,14 +25,22 @@
     }
     #pantalla-carga h1 {
       color: #ffffff;
-      font-family: 'Bricolage Grotesque', sans-serif;
-      font-size: 2.8em;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-size: 3em;
       font-weight: 800;
       text-align: center;
+      text-transform: uppercase;
+      margin: 0 20px 12px;
+      line-height: 1.2;
+    }
+    #pantalla-carga p {
+      color: #ffffff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-size: 1.2em;
       letter-spacing: 2px;
       text-transform: uppercase;
-      margin: 0 20px 28px;
-      line-height: 1.3;
+      margin: 0 0 28px;
+      opacity: 0.85;
     }
     .loader-spinner {
       width: 48px; height: 48px;
@@ -277,7 +284,8 @@
 
   <!-- ── Pantalla de carga ── -->
   <div id="pantalla-carga">
-    <h1>Bienvenido al<br>Set 2 de ESAN LABS</h1>
+    <h1>Bienvenidos al<br>Set N° 2 de EsanLabs</h1>
+    <p>Iniciando experiencia 360°...</p>
     <div class="loader-spinner"></div>
   </div>
 
