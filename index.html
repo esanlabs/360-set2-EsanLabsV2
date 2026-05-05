@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Visor 360°</title>
+  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+  <style>
+    body { margin: 0; padding: 0; }
+
+    /* ── Boton capturar ── */
+    /*#btn-capturar {
+      position: fixed; top: 15px; left: 50%; transform: translateX(-50%);
+      padding: 10px 22px; background: #E3173E; color: white;
+      border: 2px solid white; border-radius: 10px; font-size: 15px;
+      font-weight: bold; cursor: pointer; z-index: 200;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+    #btn-capturar:hover { background: #c0102f; }
+ 
+    /* ── Overlay oscuro ── */
+    
+    #overlay {
+      display: none;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.60);
+      z-index: 500;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(2px);
+    }
+    #overlay.activo { display: flex; }
+
+    /* ── Efecto barrido desde el fondo ── */
+    @keyframes barridoEntrada {
+      0%   { transform: perspective(900px) translateZ(-600px) scale(0.15); opacity: 0; }
+      60%  { opacity: 1; }
+      100% { transform: perspective(900px) translateZ(0px)    scale(1);    opacity: 1; }
+    }
+    @keyframes barridoSalida {
+      0%   { transform: perspective(900px) translateZ(0px)    scale(1);    opacity: 1; }
+      100% { transform: perspective(900px) translateZ(-600px) scale(0.15); opacity: 0; }
+    }
+
+    /* ── Card ── */
+    #card {
+      background: #ffffff;
+      width: 340px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      opacity: 0;
+      position: relative;
+    }
+    #card.visible {
+      animation: barridoEntrada 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    #card.cerrando {
+      animation: barridoSalida 0.3s ease-in forwards;
+    }
+
+    /* Imagen superior */
+    #card-img-wrap {
+      position: relative;
+      width: 100%;
+      height: 210px;
+      overflow: hidden;
+    }
+    #card-img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    /* Gradiente encima de la imagen para el texto */
+    #card-img-wrap::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0; height: 65%;
+      background: linear-gradient(transparent, rgba(0,0,0,0.75));
+    }
+    /* Texto sobre la imagen */
+    #card-img-text {
+      position: absolute; bottom: 14px; left: 18px; z-index: 2;
+    }
+    #card-titulo {
+      color: #ffffff;
+      font-family: 'Segoe UI', sans-serif;
+      font-size: 1.35em;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 0;
+      line-height: 1.2;
+    }
+    #card-categoria {
+      color: rgba(255,255,255,0.80);
+      font-family: 'Segoe UI', sans-serif;
+      font-size: 0.78em;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin: 3px 0 0;
+    }
+
+    /* Boton cerrar */
+    #btn-cerrar-card {
+      position: absolute; top: 10px; right: 10px; z-index: 10;
+      width: 30px; height: 30px; border-radius: 50%;
+      background: white; border: none;
+      font-size: 1em; font-weight: bold; color: #333;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      transition: background 0.2s;
+    }
+    #btn-cerrar-card:hover { background: #E3173E; color: white; }
+
+    /* Cuerpo del card */
+    #card-body {
+      padding: 18px 20px 22px;
+    }
+    #card-subtitulo {
+      color: #E3173E;
+      font-family: 'Segoe UI', sans-serif;
+      font-size: 0.9em;
+      font-weight: 700;
+      margin: 0 0 6px;
+    }
+    #card-desc {
+      color: #444444;
+      font-family: 'Segoe UI', sans-serif;
+      font-size: 0.88em;
+      line-height: 1.55;
+      margin: 0;
+    }
+  </style>
+
+  <script>
+    /* ── Datos de cada hotspot ── */
+    var hotspotsData = {
+      'set': {
+        titulo:     'Mesa del Conductor',
+        categoria:  'Espacio del Entrevistador',
+        subtitulo:  'Rol en el programa:',
+        descripcion:'Mesa principal donde se ubica el conductor o entrevistador del programa. Desde aqui dirige la conversacion, formula las preguntas y guia el desarrollo de cada entrevista frente a camara.',
+        imagen:     'imagenes/studio.jpg'
+      },
+      'maquillaje': {
+        titulo:     'Estacion de Maquillaje',
+        categoria:  'Preparacion previa a camara',
+        subtitulo:  'Area de caracterizacion:',
+        descripcion:'Area donde el equipo de maquillaje prepara a conductores e invitados para reducir brillos y optimizar su apariencia bajo las luces de grabacion.',
+        imagen:     'imagenes/maquillaje.jpg'
+      },
+      'pizarra': {
+        titulo:     'Pizarra de Programaciones',
+        categoria:  'Planificacion y Control',
+        subtitulo:  'Gestion de contenidos:',
+        descripcion:'Pizarra donde el equipo de produccion registra la pauta del dia, los temas a tratar, los tiempos de cada segmento y los invitados programados para cada grabacion.',
+        imagen:     'imagenes/pizzara.jpg'
+      },
+      'streaming': {
+        titulo:     'Mesa de Streaming',
+        categoria:  'Control de transmision OBS',
+        subtitulo:  'Transmision en vivo:',
+        descripcion:'Estacion desde donde el operador de streaming gestiona la transmision en vivo a traves de OBS, conectando el contenido con las plataformas digitales.',
+        imagen:     'imagenes/obs.jpeg'
+      },
+      'camara': {
+        titulo:     'Sistema de Camaras',
+        categoria:  '3 camaras simultaneas',
+        subtitulo:  'Cobertura total:',
+        descripcion:'El set opera con una camara para el conductor, una para el invitado y una camara principal de transmision, todas activas en tiempo real.',
+        imagen:     'imagenes/camara.jpg'
+      },
+      'pantalla': {
+        titulo:     'Pantalla Guia',
+        categoria:  'Monitoreo en Tiempo Real',
+        subtitulo:  'Vision en directo:',
+        descripcion:'Pantalla de referencia donde el equipo de produccion puede visualizar en tiempo real las tomas que esta capturando la camara, permitiendo ajustes instantaneos de encuadre, iluminacion y actuacion.',
+        imagen:     'imagenes/televisor.jpeg'
+      }
+    };
+
+    function abrirCard(id) {
+      var datos = hotspotsData[id];
+      if (!datos) return;
+
+      document.getElementById('card-titulo').textContent    = datos.titulo;
+      document.getElementById('card-categoria').textContent = datos.categoria;
+      document.getElementById('card-subtitulo').textContent = datos.subtitulo;
+      document.getElementById('card-desc').textContent      = datos.descripcion;
+      document.getElementById('card-img').src               = datos.imagen;
+
+      var overlay = document.getElementById('overlay');
+      var card    = document.getElementById('card');
+
+      overlay.classList.add('activo');
+      // Forzar reflow para que la transicion arranque
+      card.offsetHeight;
+      card.classList.add('visible');
+    }
+
+    function cerrarCard() {
+      var card = document.getElementById('card');
+      card.classList.remove('visible');
+      card.classList.add('cerrando');
+      setTimeout(function () {
+        card.classList.remove('cerrando');
+        document.getElementById('overlay').classList.remove('activo');
+      }, 300);
+    }
+
+    /* ── Billboard: siempre mira a la camara ── */
+    AFRAME.registerComponent('billboard', {
+      tick: function () {
+        var cam = document.querySelector('[camera]');
+        if (!cam) return;
+        this.el.object3D.quaternion.copy(cam.object3D.quaternion);
+      }
+    });
+
+    /* ── Componente A-Frame: abre el card HTML al hacer click ── */
+    AFRAME.registerComponent('hotspot-trigger', {
+      schema: { id: { type: 'string' } },
+      init: function () {
+        var id = this.data.id;
+        this.el.addEventListener('click', function (evt) {
+          evt.stopPropagation();
+          abrirCard(id);
+        });
+        this.el.addEventListener('mouseenter', function () {
+          this.setAttribute('animation__h', 'property: scale; to: 1.25 1.25 1.25; dur: 150; easing: easeOutQuad');
+        });
+        this.el.addEventListener('mouseleave', function () {
+          this.setAttribute('animation__h', 'property: scale; to: 1 1 1; dur: 150; easing: easeOutQuad');
+        });
+      }
+    });
+  </script>
+</head>
+<body>
+
+  <!-- ── Overlay + Card ── -->
+  <div id="overlay">
+    <div id="card">
+      <button id="btn-cerrar-card" onclick="cerrarCard()">✕</button>
+      <div id="card-img-wrap">
+        <img id="card-img" src="" alt="">
+        <div id="card-img-text">
+          <p id="card-titulo"></p>
+          <p id="card-categoria"></p>
+        </div>
+      </div>
+      <div id="card-body">
+        <p id="card-subtitulo"></p>
+        <p id="card-desc"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Boton capturar ── -->
+  <button id="btn-capturar">🎯 Capturar posicion</button>
+
+  <!-- ── Escena A-Frame ── -->
+  <a-scene cursor="rayOrigin: mouse" renderer="antialias: true; colorManagement: true;">
+    <a-assets>
+      <img id="img-panorama" src="imagenes/set2.jpg">
+    </a-assets>
+
+    <a-sky src="#img-panorama" rotation="0 -90 0"></a-sky>
+    <a-light type="ambient" color="#fff" intensity="1.5"></a-light>
+
+    <!-- Hotspot: Set de Grabacion -->
+    <a-entity position="-2.64 -3.95 7.65" hotspot-trigger="id: set" billboard
+      animation__pulse="property: scale; dir: alternate; dur: 1400; loop: true; to: 1.2 1.2 1.2; easing: easeInOutSine">
+      <a-circle class="clickable" radius="0.42" color="#E3173E" material="shader: flat; color: #E3173E" position="0 0 0"></a-circle>
+      <a-text value="!" align="center" color="#ffffff" width="0.55" wrap-count="1" position="0 -0.06 0.01"></a-text>
+    </a-entity>
+
+    <!-- Hotspot: Camara -->
+    <a-entity position="-8.40 -3.10 0.88" hotspot-trigger="id: camara" billboard
+      animation__pulse="property: scale; dir: alternate; dur: 1400; loop: true; to: 1.2 1.2 1.2; easing: easeInOutSine">
+      <a-circle class="clickable" radius="0.42" color="#E3173E" material="shader: flat; color: #E3173E" position="0 0 0"></a-circle>
+      <a-text value="!" align="center" color="#ffffff" width="0.55" wrap-count="1" position="0 -0.06 0.01"></a-text>
+    </a-entity>
+
+    <!-- Hotspot: Pantalla Guia -->
+    <a-entity position="-7.11 2.28 -5.02" hotspot-trigger="id: pantalla" billboard
+      animation__pulse="property: scale; dir: alternate; dur: 1400; loop: true; to: 1.2 1.2 1.2; easing: easeInOutSine">
+      <a-circle class="clickable" radius="0.42" color="#E3173E" material="shader: flat; color: #E3173E" position="0 0 0"></a-circle>
+      <a-text value="!" align="center" color="#ffffff" width="0.55" wrap-count="1" position="0 -0.06 0.01"></a-text>
+    </a-entity>
+
+    <!-- Hotspot: Set de Maquillaje -->
+    <a-entity position="5.48 -4.96 -5.13" hotspot-trigger="id: maquillaje" billboard
+      animation__pulse="property: scale; dir: alternate; dur: 1400; loop: true; to: 1.2 1.2 1.2; easing: easeInOutSine">
+      <a-circle class="clickable" radius="0.42" color="#E3173E" material="shader: flat; color: #E3173E" position="0 0 0"></a-circle>
+      <a-text value="!" align="center" color="#ffffff" width="0.55" wrap-count="1" position="0 -0.06 0.01"></a-text>
+    </a-entity>
+
+    <!-- Hotspot: Mesa de Streaming -->
+    <a-entity position="-8.14 -0.80 -1.84" hotspot-trigger="id: streaming" billboard
+      animation__pulse="property: scale; dir: alternate; dur: 1400; loop: true; to: 1.2 1.2 1.2; easing: easeInOutSine">
+      <a-circle class="clickable" radius="0.42" color="#E3173E" material="shader: flat; color: #E3173E" position="0 0 0"></a-circle>
+      <a-text value="!" align="center" color="#ffffff" width="0.55" wrap-count="1" position="0 -0.06 0.01"></a-text>
+    </a-entity>
+
+    <!-- Hotspot: Pizarra -->
+    <a-entity position="-0.72 -1.84 -8.78" hotspot-trigger="id: pizarra" billboard
+      animation__pulse="property: scale; dir: alternate; dur: 1400; loop: true; to: 1.2 1.2 1.2; easing: easeInOutSine">
+      <a-circle class="clickable" radius="0.42" color="#E3173E" material="shader: flat; color: #E3173E" position="0 0 0"></a-circle>
+      <a-text value="!" align="center" color="#ffffff" width="0.55" wrap-count="1" position="0 -0.06 0.01"></a-text>
+    </a-entity>
+
+    <a-camera fov="80" wasd-controls-enabled="false" look-controls="reverseMouseDrag: true"></a-camera>
+  </a-scene>
+
+  <script>
+    // Cerrar card al hacer click en el overlay oscuro (fuera del card)
+    document.getElementById('overlay').addEventListener('click', function (e) {
+      if (e.target === this) cerrarCard();
+    });
+
+    // Capturar coordenada
+    document.getElementById('btn-capturar').addEventListener('click', function () {
+      var cam = document.querySelector('[camera]').getObject3D('camera');
+      if (!cam) return;
+      var dir = new THREE.Vector3();
+      cam.getWorldDirection(dir);
+      var dist = 9;
+      var coord = 'position="' + (dir.x*dist).toFixed(2) + ' ' + (dir.y*dist).toFixed(2) + ' ' + (dir.z*dist).toFixed(2) + '"';
+      navigator.clipboard.writeText(coord)
+        .then(function () { alert('Coordenada copiada:\n\n' + coord); })
+        .catch(function () { prompt('Copia esta coordenada:', coord); });
+    });
+  </script>
+</body>
+</html>
