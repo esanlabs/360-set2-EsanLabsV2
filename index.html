@@ -61,6 +61,36 @@
     }
     #btn-capturar:hover { background: #c0102f; }
  
+    /* ── Overlay de acercamiento ── */
+    #zoom-overlay {
+      display: none;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: #000;
+      z-index: 500;
+      align-items: center;
+      justify-content: center;
+    }
+    #zoom-overlay.activo { display: flex; }
+    #zoom-img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      animation: zoomEntrada 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    @keyframes zoomEntrada {
+      from { transform: scale(1.4); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+    #btn-cerrar-zoom {
+      position: absolute; top: 15px; right: 15px;
+      width: 36px; height: 36px; border-radius: 50%;
+      background: white; border: none;
+      font-size: 1.1em; font-weight: bold; color: #333;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      transition: background 0.2s;
+    }
+    #btn-cerrar-zoom:hover { background: #E3173E; color: white; }
+
     /* ── Overlay oscuro ── */
     
     #overlay {
@@ -223,6 +253,20 @@
       }
     };
 
+    function abrirZoom(imagen) {
+      var overlay = document.getElementById('zoom-overlay');
+      var img     = document.getElementById('zoom-img');
+      img.src = imagen;
+      img.style.animation = 'none';
+      img.offsetHeight;
+      img.style.animation = '';
+      overlay.classList.add('activo');
+    }
+
+    function cerrarZoom() {
+      document.getElementById('zoom-overlay').classList.remove('activo');
+    }
+
     function abrirCard(id) {
       var datos = hotspotsData[id];
       if (!datos) return;
@@ -268,7 +312,13 @@
         var id = this.data.id;
         this.el.addEventListener('click', function (evt) {
           evt.stopPropagation();
-          abrirCard(id);
+          if (id === 'set') {
+            abrirZoom('imagenes/studio.jpg');
+          } else if (id === 'camara') {
+            abrirZoom('imagenes/camara_0.jpg');
+          } else {
+            abrirCard(id);
+          }
         });
         this.el.addEventListener('mouseenter', function () {
           this.setAttribute('animation__h', 'property: scale; to: 1.25 1.25 1.25; dur: 150; easing: easeOutQuad');
@@ -287,6 +337,12 @@
     <h1>Bienvenidos al<br>Set N° 2 de EsanLabs</h1>
     <p>Iniciando experiencia 360°...</p>
     <div class="loader-spinner"></div>
+  </div>
+
+  <!-- ── Overlay acercamiento ── -->
+  <div id="zoom-overlay">
+    <img id="zoom-img" src="" alt="">
+    <button id="btn-cerrar-zoom" onclick="cerrarZoom()">✕</button>
   </div>
 
   <!-- ── Overlay + Card ── -->
@@ -316,11 +372,11 @@
       <img id="img-panorama" src="imagenes/set2.jpg">
     </a-assets>
 
-    <a-sky src="#img-panorama" rotation="0 -90 0"></a-sky>
+    <a-sky id="cielo" src="#img-panorama" rotation="0 -90 0"></a-sky>
     <a-light type="ambient" color="#fff" intensity="1.5"></a-light>
 
     <!-- Hotspot: Set de Grabacion -->
-    <a-entity position="-2.64 -3.95 7.65" hotspot-trigger="id: set" billboard
+    <a-entity class="hotspot-icon" position="-2.64 -3.95 7.65" hotspot-trigger="id: set" billboard
       animation__pulse="property: scale; dir: alternate; dur: 1400; loop: true; to: 1.2 1.2 1.2; easing: easeInOutSine">
       <a-circle class="clickable" radius="0.42" color="#E3173E" material="shader: flat; color: #E3173E" position="0 0 0"></a-circle>
       <a-text value="!" align="center" color="#ffffff" width="0.55" wrap-count="1" position="0 -0.06 0.01"></a-text>
