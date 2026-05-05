@@ -3,9 +3,46 @@
 <head>
   <meta charset="utf-8">
   <title>Visor 360°</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@800&display=swap" rel="stylesheet">
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
   <style>
     body { margin: 0; padding: 0; }
+
+    /* Ocultar loader azul por defecto de A-Frame */
+    .a-loader-title { display: none !important; }
+
+    /* ── Pantalla de carga personalizada ── */
+    #pantalla-carga {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: #E3173E;
+      z-index: 9999;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      transition: opacity 0.8s ease;
+    }
+    #pantalla-carga.oculto {
+      opacity: 0;
+      pointer-events: none;
+    }
+    #pantalla-carga h1 {
+      color: #ffffff;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: 2.8em;
+      font-weight: 800;
+      text-align: center;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin: 0 20px 28px;
+      line-height: 1.3;
+    }
+    .loader-spinner {
+      width: 48px; height: 48px;
+      border: 5px solid rgba(255,255,255,0.3);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ── Boton capturar ── */
     /*#btn-capturar {
@@ -238,6 +275,12 @@
 </head>
 <body>
 
+  <!-- ── Pantalla de carga ── -->
+  <div id="pantalla-carga">
+    <h1>Bienvenido al<br>Set 2 de ESAN LABS</h1>
+    <div class="loader-spinner"></div>
+  </div>
+
   <!-- ── Overlay + Card ── -->
   <div id="overlay">
     <div id="card">
@@ -314,6 +357,13 @@
   </a-scene>
 
   <script>
+    // Ocultar pantalla de carga cuando la escena termina de cargar
+    document.querySelector('a-scene').addEventListener('loaded', function () {
+      var loader = document.getElementById('pantalla-carga');
+      loader.classList.add('oculto');
+      setTimeout(function () { loader.style.display = 'none'; }, 900);
+    });
+
     // Cerrar card al hacer click en el overlay oscuro (fuera del card)
     document.getElementById('overlay').addEventListener('click', function (e) {
       if (e.target === this) cerrarCard();
